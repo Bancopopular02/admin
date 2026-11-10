@@ -1,0 +1,1305 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#075bff">
+<title>Panneau d'Administration — The Rock Solidarity Foundation</title>
+<style>
+:root{
+  --navy:#082d72;--blue:#075bff;--blue2:#2678ff;--pale:#edf2ff;
+  --gold:#ffc400;--green:#16a34a;--ink:#101a38;--muted:#697493;
+  --line:#e5eaf7;--surface:#fff;--bg:#f4f6ff;
+  --wa-bg: #efeae2;
+  --wa-sidebar: #ffffff;
+  --wa-chat-bg: #efeae2;
+  --wa-green: #00a884;
+  --wa-text: #111b21;
+  --wa-text-secondary: #667781;
+  --wa-incoming: #ffffff;
+  --wa-outgoing: #d9fdd3;
+  --wa-border: #e2e8f0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);overflow-x:hidden}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+
+/* THÈMES (CLAIR / SOMBRE) */
+body.dark-theme {
+  --bg: #0b141a;
+  --ink: #e9edef;
+  --muted: #8696a0;
+  --line: #222d34;
+  --wa-bg: #0b141a;
+  --wa-sidebar: #111b21;
+  --wa-chat-bg: #0b141a;
+  --wa-text: #e9edef;
+  --wa-text-secondary: #8696a0;
+  --wa-incoming: #202c33;
+  --wa-outgoing: #005c4b;
+  --wa-border: #222d34;
+}
+body.dark-theme .admin-topbar, body.dark-theme .admin-drawer, body.dark-theme .wa-sidebar-header, body.dark-theme .wa-search-box, body.dark-theme .wa-sidebar-pane, body.dark-theme .wa-chat-top-header, body.dark-theme .wa-bottom-composer {
+  background: var(--wa-sidebar) !important;
+  color: var(--wa-text) !important;
+  border-color: var(--wa-border) !important;
+}
+body.dark-theme .wa-chats-scroll, body.dark-theme .wa-chat-row {
+  background: var(--wa-sidebar) !important;
+}
+body.dark-theme .wa-chat-row:hover { background: #202c33 !important; }
+body.dark-theme .wa-chat-row.active { background: #2a3942 !important; }
+body.dark-theme .wa-search-box input, body.dark-theme .wa-bottom-composer input {
+  background: #202c33 !important; color: #e9edef !important;
+}
+
+/* ÉCRAN DE CONNEXION ADMIN */
+.login-overlay{position:fixed;inset:0;background:rgba(8,25,60,0.85);z-index:9999;display:grid;place-items:center;backdrop-filter:blur(8px);padding:20px}
+.login-card{background:#fff;width:100%;max-width:400px;padding:36px;border-radius:24px;box-shadow:0 20px 40px rgba(7,41,105,0.22);text-align:center;border:1px solid #e2e8f5}
+.login-card h2{margin:0 0 8px;color:var(--navy);font-size:20px;font-weight:850}
+.login-card p{font-size:13.5px;color:var(--muted);margin:0 0 24px;line-height:1.5}
+.login-card input{width:100%;padding:12px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;outline:0;margin-bottom:16px;text-align:center;background:#fafbfc}
+.login-card button{width:100%;padding:12px;background:var(--blue);color:#fff;border:0;border-radius:12px;font-weight:800;font-size:14px}
+
+/* EN-TÊTE ADMIN */
+.admin-topbar{height:60px;background:#fff;border-bottom:1px solid #e8ecf8;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:100}
+.top-left-group{display:flex;align-items:center;gap:12px}
+.hamburger-btn{background:transparent;border:0;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--navy);cursor:pointer}
+.hamburger-btn:hover{background:var(--pale)}
+.hamburger-btn svg{width:22px;height:22px}
+
+.admin-brand{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:850;color:var(--navy)}
+.admin-brand svg{width:28px;height:28px;color:var(--blue)}
+.btn-outline{background:#fee2e2;border:0;color:#dc2626;padding:8px 14px;border-radius:10px;font-weight:750;font-size:12.5px;cursor:pointer}
+
+/* VOLET LATÉRAL (DRAWER) */
+.drawer-overlay{position:fixed;inset:0;background:rgba(8,25,60,0.5);z-index:998;opacity:0;pointer-events:none;transition:opacity .3s ease;backdrop-filter:blur(3px)}
+.drawer-overlay.open{opacity:1;pointer-events:auto}
+.admin-drawer{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:85vw;background:#fff;z-index:999;transform:translateX(-100%);transition:transform .3s cubic-bezier(0.1,0.9,0.2,1);display:flex;flex-direction:column;box-shadow:10px 0 40px rgba(0,0,0,0.15)}
+.admin-drawer.open{transform:translateX(0)}
+.drawer-header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #edf0f8}
+.drawer-title{font-size:15px;font-weight:850;color:var(--navy)}
+.drawer-close{background:transparent;border:0;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted);cursor:pointer}
+.drawer-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+
+/* BOUTONS DU VOLET LATÉRAL */
+.tab-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px 18px;border:0;border-radius:12px;font-size:13.5px;font-weight:800;color:#fff;text-align:left;cursor:pointer}
+.tab-btn[data-tab="tabDrawer"] { background: linear-gradient(135deg, #075bff, #0439bc); }
+.tab-btn[data-tab="tabWelcomeMessage"] { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+.tab-btn[data-tab="tabHeader"] { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+.tab-btn[data-tab="tabSlider"] { background: linear-gradient(135deg, #059669, #047857); }
+.tab-btn[data-tab="tabProfile"] { background: linear-gradient(135deg, #d97706, #b45309); }
+.tab-btn[data-tab="tabFooter"] { background: linear-gradient(135deg, #db2777, #be185d); }
+.tab-btn[data-tab="tabPosts"] { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.tab-btn[data-tab="tabNewPost"] { background: linear-gradient(135deg, #9333ea, #7e22ce); }
+.tab-btn[data-tab="tabChat"] { background: linear-gradient(135deg, #0d9488, #0f766e); }
+
+/* CONTENEUR PRINCIPAL PLEIN ÉCRAN ABSOLU */
+.admin-main {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: calc(100vh - 60px);
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-welcome-screen{text-align:center;padding:100px 20px;height:100%;display:grid;place-content:center;background:#fff}
+.admin-welcome-screen svg{width:56px;height:56px;color:var(--blue);margin:0 auto 16px}
+
+.admin-pane { display: none; width: 100%; height: 100%; background: #fff; overflow-y: auto; }
+.admin-pane.active { display: flex; flex-direction: column; }
+.full-screen-pane-content {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* FORMULAIRES */
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.form-group input, .form-group textarea, .form-group select{width:100%;padding:12px 16px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;background:#fafbfc;outline:0}
+.form-group textarea{min-height:100px}
+.btn-primary{background:var(--blue);color:#fff;border:0;padding:12px 24px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.btn-sm{background:var(--blue);color:#fff;border:0;padding:8px 14px;border-radius:8px;font-weight:750;font-size:12.5px;cursor:pointer}
+.btn-danger{background:#fee2e2;color:#dc2626;border:0;padding:8px 14px;border-radius:8px;font-weight:750;font-size:12.5px;cursor:pointer}
+
+/* PUBLICATIONS (VUE) */
+.admin-posts-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.public-feed-container{display:flex;flex-direction:column;gap:16px;padding-bottom:40px}
+.public-post-card{background:#fff;border:1px solid #e5eaf7;border-radius:14px;padding:16px;position:relative}
+
+/* CADRAN DE PRÉVISUALISATION DES MÉDIAS */
+.media-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+}
+.media-preview-item {
+  position: relative;
+  width: 100%;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--line);
+}
+.media-preview-item img, .media-preview-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =====================================================================
+   DISCUSSIONS PRIVÉES WHATSAPP
+   ===================================================================== */
+.wa-fullscreen-layout {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  background: var(--wa-bg);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  position: relative;
+}
+.wa-sidebar-pane {
+  width: 360px;
+  background: var(--wa-sidebar);
+  border-right: 1px solid var(--wa-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100%;
+}
+.wa-sidebar-header {
+  height: 60px;
+  background: #f0f2f5;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--wa-border);
+  flex-shrink: 0;
+}
+.wa-sidebar-header-left {
+  display: flex; align-items: center; gap: 10px; font-weight: 850; color: var(--navy);
+}
+.wa-sidebar-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--wa-green);
+  color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800;
+}
+.wa-settings-btn {
+  background: transparent; border: 0; color: var(--muted); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; transition: background .2s;
+}
+.wa-settings-btn:hover { background: rgba(0,0,0,0.05); color: var(--blue); }
+.wa-settings-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+.wa-search-box {
+  padding: 8px 12px; background: #fff; border-bottom: 1px solid var(--wa-border); flex-shrink: 0;
+}
+.wa-search-box input {
+  width: 100%; padding: 8px 12px; background: #f0f2f5; border: 0; border-radius: 8px; outline: none; font-size: 13px;
+}
+.wa-chats-scroll {
+  flex: 1; overflow-y: auto; background: #fff;
+}
+.wa-chat-row {
+  display: flex; align-items: center; padding: 12px 16px; gap: 12px; cursor: pointer; border-bottom: 1px solid #f5f6f8;
+}
+.wa-chat-row:hover { background: #f5f6f6; }
+.wa-chat-row.active { background: #f0f2f5; }
+.wa-row-avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--navy));
+  color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+.wa-row-info { flex: 1; min-width: 0; }
+.wa-row-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.wa-row-name { font-weight: 750; font-size: 14px; color: var(--wa-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-row-time { font-size: 11px; color: var(--wa-text-secondary); }
+.wa-row-msg { font-size: 13px; color: var(--wa-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ZONE DE DISCUSSION DROITE */
+.wa-active-chat-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  height: 100%;
+  position: relative;
+}
+.wa-chat-top-header {
+  height: 60px;
+  background: #f0f2f5;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--wa-border);
+  flex-shrink: 0;
+}
+.wa-pane-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--navy));
+  color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 12px;
+}
+.wa-pane-titles { flex: 1; }
+.wa-pane-name { font-weight: 800; font-size: 14px; color: var(--wa-text); }
+.wa-pane-sub { font-size: 11px; color: var(--wa-text-secondary); }
+
+.wa-messages-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wa-msg-bubble {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+  word-break: break-word;
+}
+.wa-msg-bubble.incoming { background: var(--wa-incoming); align-self: flex-start; border-top-left-radius: 0; color: var(--wa-text); }
+.wa-msg-bubble.outgoing { background: var(--wa-outgoing); align-self: flex-end; border-top-right-radius: 0; color: var(--wa-text); }
+.wa-time-stamp { font-size: 10px; color: var(--wa-text-secondary); text-align: right; margin-top: 2px; }
+
+.wa-bottom-composer {
+  padding: 10px 14px;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--wa-border);
+  flex-shrink: 0;
+}
+.wa-bottom-composer input {
+  flex: 1; background: #fff; border: 0; border-radius: 24px; padding: 10px 16px; font-size: 14px; outline: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.wa-send-action-btn {
+  background: var(--wa-green); color: #fff; border: 0; border-radius: 50%; width: 40px; height: 40px;
+  display: grid; place-items: center; cursor: pointer; flex-shrink: 0;
+}
+.wa-send-action-btn svg { width: 18px; height: 18px; fill: currentColor; margin-left: 2px; }
+
+.wa-placeholder-empty {
+  flex: 1; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; background: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+}
+
+/* MODALES PARAMÈTRES WHATSAPP */
+.wa-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 4000; display: none; place-items:center; padding: 20px; }
+.wa-modal-overlay.open { display: grid; }
+.wa-modal-card { background: #fff; width: 100%; max-width: 420px; padding: 24px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+.wa-modal-card h3 { margin: 0 0 14px; font-size: 18px; color: var(--navy); font-weight: 850; }
+
+/* MODALE COMMUNE */
+.modal-overlay{position:fixed;inset:0;background:rgba(8,25,60,0.6);z-index:3000;display:none;place-items:center;backdrop-filter:blur(4px);padding:20px}
+.modal-overlay.open{display:grid}
+.modal-card{background:#fff;width:100%;max-width:500px;padding:24px;border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,0.2)}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:#102b60;color:white;padding:10px 16px;border-radius:10px;font-size:12px;z-index:3000;opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:768px){
+  .wa-fullscreen-layout { flex-direction: column; }
+  .wa-sidebar-pane { width: 100%; height: 100%; }
+  .wa-sidebar-pane.chat-opened { display: none; }
+  .wa-active-chat-pane { width: 100%; height: 100%; display: none; }
+  .wa-active-chat-pane.active { display: flex; }
+}
+</style>
+</head>
+<body>
+
+<!-- SÉCURITÉ ADMIN -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <svg style="width:44px;height:44px;color:var(--blue);margin-bottom:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <h2>Panneau Admin</h2>
+    <p>Entrez votre mot de passe administrateur.</p>
+    <form id="loginForm">
+      <input type="password" id="adminPasswordInput" placeholder="Mot de passe" required autocomplete="current-password">
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+</div>
+
+<!-- EN-TÊTE ADMIN -->
+<header class="admin-topbar">
+  <div class="top-left-group">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="admin-brand">
+      <svg viewBox="0 0 64 64" role="img">
+        <defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#075bff"/><stop offset="1" stop-color="#06358c"/></linearGradient></defs>
+        <path d="M32 56C24 49 7 38 5 24 3 11 18 3 29 13l3 3 4-4C48 2 62 11 59 25 56 39 42 49 32 56Z" fill="url(#lg1)"/>
+        <path d="M17 29l10 9 8-10 5 4 8-11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Administration</span>
+    </div>
+  </div>
+  <button class="btn-outline" id="logoutBtn">Quitter</button>
+</header>
+
+<!-- VOLET LATÉRAL -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="admin-drawer" id="adminDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Navigation Admin</span>
+    <button class="drawer-close" id="drawerClose" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <button class="tab-btn" data-tab="tabDrawer">Menu Burger & Textes</button>
+    <button class="tab-btn" data-tab="tabWelcomeMessage">Message de Bienvenue (Georgia)</button>
+    <button class="tab-btn" data-tab="tabHeader">En-tête & Identité</button>
+    <button class="tab-btn" data-tab="tabSlider">Bannière / Slider</button>
+    <button class="tab-btn" data-tab="tabProfile">Profil Chat & Infos</button>
+    <button class="tab-btn" data-tab="tabFooter">Pied de page</button>
+    <button class="tab-btn" data-tab="tabPosts">Voir Publications</button>
+    <button class="tab-btn" data-tab="tabNewPost">+ Faire une Publication</button>
+    <button class="tab-btn" data-tab="tabChat">Discussions Privées</button>
+  </div>
+</aside>
+
+<!-- CONTENEUR PRINCIPAL PLEIN ÉCRAN ABSOLU -->
+<div class="admin-main">
+  
+  <div class="admin-welcome-screen" id="adminWelcomeScreen">
+    <div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M3 9h18"/></svg>
+      <h2>Panneau d'Administration Prêt</h2>
+      <p style="color:var(--muted); font-size:14px;">Ouvrez le menu en haut à gauche pour gérer vos options en plein écran.</p>
+    </div>
+  </div>
+
+  <div id="adminContentArea" style="display:none; width:100%; height:100%;">
+
+    <!-- 1. GESTION MENU BURGER -->
+    <div class="admin-pane" id="tabDrawer">
+      <div class="full-screen-pane-content">
+        <h2>Gestion du Menu Burger & Options</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Modifiez le titre et les liens du menu latéral.</p>
+        <div class="form-group" style="background:#f8f9ff;padding:16px;border-radius:12px;border:1px solid var(--line);margin-bottom:20px">
+          <label>Titre principal du menu</label>
+          <div style="display:flex;gap:10px">
+            <input type="text" id="setDrawerTitle" placeholder="Navigation & Infos">
+            <button type="button" class="btn-sm" onclick="saveDrawerTitle()">Enregistrer</button>
+          </div>
+        </div>
+        <div id="burgerOptionsContainer" style="flex:1; overflow-y:auto;"></div>
+        <div style="margin-top:16px">
+          <button type="button" class="btn-primary" onclick="addBurgerOptionCard()">+ Ajouter une option</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOUVEL ONGLET : PERSONNALISATION DU MESSAGE DE BIENVENUE PROFESSIONNEL -->
+    <div class="admin-pane" id="tabWelcomeMessage">
+      <div class="full-screen-pane-content" style="max-width:800px; margin:0 auto; width:100%;">
+        <h2>Message de Bienvenue & Confiance Professionnel</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Personnalisez le titre, le sous-titre, les polices (Georgia), les tailles et les couleurs de ce bloc professionnel situé entre l'en-tête et la bannière.</p>
+        
+        <form id="welcomeMsgForm">
+          <div class="form-group">
+            <label>Titre principal (ex: Espace Officiel de The Rock Solidarity Foundation)</label>
+            <input type="text" id="setWelcomeTitleText" placeholder="Espace Officiel de The Rock Solidarity Foundation">
+          </div>
+
+          <div class="form-group">
+            <label>Sous-titre (ex: Plateforme solidaire d'accompagnement et de suivi des projets)</label>
+            <input type="text" id="setWelcomeSubText" placeholder="Plateforme solidaire...">
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Police d'écriture</label>
+              <select id="setWelcomeFont">
+                <option value="Georgia, serif">Georgia (Classique & Élégant)</option>
+                <option value="Inter, sans-serif">Inter (Moderne)</option>
+                <option value="'Courier New', monospace">Courier (Machine à écrire)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label>Taille du titre (ex: 28px ou clamp(...))</label>
+              <input type="text" id="setWelcomeTitleSize" value="clamp(22px, 3vw, 32px)">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label>Taille du sous-titre</label>
+              <input type="text" id="setWelcomeSubSize" value="clamp(14px, 1.8vw, 17px)">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Couleur principale du texte</label>
+              <input type="color" id="setWelcomeTextColor" value="#082d72" style="height:44px; padding:4px; cursor:pointer;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label>Couleur du dégradé de la marque (Surlignage)</label>
+              <input type="color" id="setWelcomeAccentColor" value="#075bff" style="height:44px; padding:4px; cursor:pointer;">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Enregistrer et appliquer le message professionnel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. EN-TÊTE & IDENTITÉ -->
+    <div class="admin-pane" id="tabHeader">
+      <div class="full-screen-pane-content">
+        <h2>En-tête & Identité du site</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Personnalisez le titre principal et la marque.</p>
+        <form id="headerForm">
+          <div class="form-group"><label>Titre complet du site (Meta title)</label><input type="text" id="setMetaTitle"></div>
+          <div class="form-group"><label>Nom de la marque</label><input type="text" id="setBrandName"></div>
+          <div class="form-group"><label>Sous-titre / Avertissement</label><input type="text" id="setBrandTag"></div>
+          <button type="submit" class="btn-primary">Enregistrer les modifications</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 3. BANNIÈRE / SLIDER -->
+    <div class="admin-pane" id="tabSlider">
+      <div class="full-screen-pane-content">
+        <h2>Bannière d'accueil (Hero Slider)</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Modifiez les textes d'accroche.</p>
+        <form id="sliderForm">
+          <div class="form-group"><label>Kicker (Étiquette supérieure)</label><input type="text" id="setHeroKicker"></div>
+          <div class="form-group"><label>Titre principal</label><textarea id="setHeroTitle"></textarea></div>
+          <div class="form-group"><label>Description</label><textarea id="setHeroDesc"></textarea></div>
+          <button type="submit" class="btn-primary">Enregistrer la bannière</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 4. PROFIL CHAT & INFOS -->
+    <div class="admin-pane" id="tabProfile">
+      <div class="full-screen-pane-content">
+        <h2>Profil WhatsApp & Widget Chat</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Modifiez l'étiquette du bouton flottant.</p>
+        <form id="profileForm">
+          <div class="form-group"><label>Nom du support</label><input type="text" id="setChatName" value="Fondation (Support)"></div>
+          <div class="form-group"><label>Texte de la bulle</label><input type="text" id="setChatLabel" value="Besoin d'aide ? Écrivez-nous"></div>
+          <button type="submit" class="btn-primary">Enregistrer le profil</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 5. PIED DE PAGE -->
+    <div class="admin-pane" id="tabFooter">
+      <div class="full-screen-pane-content">
+        <h2>Pied de page & Coordonnées</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Mettez à jour le téléphone et l'e-mail.</p>
+        <form id="footerForm">
+          <div class="form-group"><label>Téléphone WhatsApp officiel</label><input type="text" id="setPhone"></div>
+          <div class="form-group"><label>Adresse e-mail de contact</label><input type="email" id="setEmail"></div>
+          <button type="submit" class="btn-primary">Enregistrer les contacts</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 6. VOIR PUBLICATIONS -->
+    <div class="admin-pane" id="tabPosts">
+      <div class="full-screen-pane-content">
+        <div class="admin-posts-header">
+          <div>
+            <h2>Publications du fil</h2>
+            <p style="color:var(--muted);font-size:13px;margin:0">Gérez les publications du site public.</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openCreatePostModal()">+ Nouvelle</button>
+        </div>
+        <div class="public-feed-container" id="adminPublicPostsList" style="flex:1; overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- 7. FAIRE UNE PUBLICATION SPÉCIFIQUE (AVEC CADRAN DE PRÉVISUALISATION) -->
+    <div class="admin-pane" id="tabNewPost">
+      <div class="full-screen-pane-content" style="max-width:800px; margin:0 auto; width:100%;">
+        <h2>Créer une Publication Spécifique</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:20px">Personnalisez le texte, le design, la police et visualisez vos photos/vidéos sélectionnées avant publication.</p>
+        
+        <form id="specificPostForm" onsubmit="submitSpecificPost(event)">
+          <!-- Champ 1 : Texte de la publication -->
+          <div class="form-group">
+            <label>1. Message / Texte de la publication</label>
+            <textarea id="specPostText" placeholder="Écrivez votre message ici..." required></textarea>
+          </div>
+
+          <!-- Options de Design (Police, Couleurs) -->
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Police d'écriture</label>
+              <select id="specPostFont">
+                <option value="Inter, sans-serif">Inter (Moderne)</option>
+                <option value="Georgia, serif">Georgia (Classique)</option>
+                <option value="'Courier New', monospace">Courier (Machine à écrire)</option>
+                <option value="'Comic Sans MS', cursive">Comic (Détendu)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Couleur du texte</label>
+              <input type="color" id="specPostTextColor" value="#1e293b" style="height:44px; padding:4px; cursor:pointer;">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Couleur de l'arrière-plan du texte</label>
+              <input type="color" id="specPostBgColor" value="#ffffff" style="height:44px; padding:4px; cursor:pointer;">
+            </div>
+          </div>
+
+          <!-- Champ 2 : Sélection photos/vidéos + Cadran de prévisualisation -->
+          <div class="form-group">
+            <label>2. Sélectionner des photos ou vidéos (Galerie)</label>
+            <input type="file" id="specPostMediaInput" accept="image/*,video/*" multiple style="padding:10px; background:#fff;" onchange="previewSelectedMedia(event)">
+            
+            <!-- Cadran d'affichage des médias sélectionnés -->
+            <div class="media-preview-grid" id="mediaPreviewGrid" style="display:none;"></div>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Publier et synchroniser sur Airtable & Site</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 8. DISCUSSIONS PRIVÉES WHATSAPP -->
+    <div class="admin-pane" id="tabChat">
+      <div class="wa-fullscreen-layout" id="waLayoutContainer">
+        <!-- GAUCHE : LISTE DES VISITEURS -->
+        <div class="wa-sidebar-pane" id="waSidebarPane">
+          <div class="wa-sidebar-header">
+            <div class="wa-sidebar-header-left">
+              <div class="wa-sidebar-avatar">Admin</div>
+              <div style="font-size:14px;">Visiteurs</div>
+            </div>
+            <button class="wa-settings-btn" onclick="openWaSettingsModal()" title="Paramètres et Thème">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+          <div class="wa-search-box">
+            <input type="text" id="waSearchInput" placeholder="Rechercher un visiteur..." oninput="filterConversations()">
+          </div>
+          <div class="wa-chats-scroll" id="waChatsList"></div>
+        </div>
+
+        <!-- DROITE : FIL DE DISCUSSION ACTIF -->
+        <div class="wa-active-chat-pane" id="waChatPane">
+          <div class="wa-placeholder-empty">
+            <div>
+              <svg style="width:48px;height:48px;color:#cbd5e1;margin-bottom:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <div style="font-weight:700; color:#475569;">Aucune discussion sélectionnée</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top:4px;">Cliquez sur un profil à gauche pour ouvrir la discussion.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALE PARAMÈTRES WHATSAPP -->
+<div class="wa-modal-overlay" id="waSettingsModal">
+  <div class="wa-modal-card">
+    <h3>Personnalisation WhatsApp</h3>
+    <div class="form-group">
+      <label>Mode de Thème</label>
+      <select id="settingThemeSelect">
+        <option value="light">Thème Clair</option>
+        <option value="dark">Thème Sombre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Couleur des bulles sortantes (Admin)</label>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input type="color" id="settingOutgoingColor" value="#d9fdd3" style="width:60px;height:40px;padding:0;border:0;cursor:pointer;">
+        <span style="font-size:13px; color:var(--muted)">Couleur de vos messages</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Fond d'écran (Galerie)</label>
+      <input type="file" id="settingBgFileInput" accept="image/*" style="padding:8px; background:#fff;">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button type="button" class="btn-sm" style="background:#edf2ff;color:var(--blue)" onclick="closeWaSettingsModal()">Annuler</button>
+      <button type="button" class="btn-primary" onclick="saveWaSettings()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE PUBLICATION -->
+<div class="modal-overlay" id="editPostModal">
+  <div class="modal-card">
+    <h3 id="modalPostTitle">Modifier la publication</h3>
+    <div class="form-group" style="margin-top:14px"><label>Auteur</label><input type="text" id="editPostAuthorInput"></div>
+    <div class="form-group"><label>Texte</label><textarea id="editPostTextInput"></textarea></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-sm" style="background:#edf2ff;color:var(--blue)" onclick="closeEditModal()">Annuler</button>
+      <button type="button" class="btn-primary" onclick="saveEditedPost()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- CONFIGURATION DE LA SYNCHRONISATION AIRTABLE ---
+const AIRTABLE_PAT = 'patuYh42j8HjE0kEY.eedc6cd7802c80bc3f6b18dae89bd4d6b169a3cd4881212360b5f3d6c850f67c';
+const AIRTABLE_BASE_ID = 'appmCEzAt9U4ZR4w2';
+
+// Fonction universelle pour envoyer des données vers Airtable en temps réel
+async function syncAdminToAirtable(tableName, fieldsData) {
+  const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(tableName)}`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_PAT}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fields: fieldsData })
+    });
+    
+    if (!response.ok) {
+      const errDetail = await response.text();
+      console.error('Erreur Airtable:', errDetail);
+      return false;
+    }
+    
+    const result = await response.json();
+    console.log(`Donnée synchronisée avec succès dans ${tableName} :`, result);
+    return true;
+  } catch (error) {
+    console.error('Erreur réseau Airtable :', error);
+    return false;
+  }
+}
+
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+
+function showToast(msg) {
+  const t = $('#toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+const ADMIN_PASS_KEY = 'rock_admin_password';
+if(!localStorage.getItem(ADMIN_PASS_KEY)) {
+  localStorage.setItem(ADMIN_PASS_KEY, 'John@72755');
+}
+
+$('#loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const pwd = $('#adminPasswordInput').value;
+  if(pwd === localStorage.getItem(ADMIN_PASS_KEY)) {
+    $('#loginOverlay').style.display = 'none';
+    sessionStorage.setItem('rock_admin_logged', '1');
+    initAdmin();
+  } else {
+    showToast('Mot de passe incorrect');
+  }
+});
+
+if(sessionStorage.getItem('rock_admin_logged') === '1') {
+  $('#loginOverlay').style.display = 'none';
+  setTimeout(initAdmin, 50);
+}
+
+$('#logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('rock_admin_logged');
+  $('#loginOverlay').style.display = 'grid';
+  $('#adminPasswordInput').value = '';
+});
+
+/* CHARGEMENT DES PRÉFÉRENCES WHATSAPP */
+function loadSavedWaCustomizations() {
+  const theme = localStorage.getItem('rock_wa_theme') || 'light';
+  applyThemeSetting(theme);
+  $('#settingThemeSelect').value = theme;
+
+  const outgoingColor = localStorage.getItem('rock_wa_outgoing_color') || '#d9fdd3';
+  $('#settingOutgoingColor').value = outgoingColor;
+  document.documentElement.style.setProperty('--wa-outgoing', outgoingColor);
+
+  const bgImg = localStorage.getItem('rock_wa_bg_image') || '';
+  if(bgImg) {
+    $('#waLayoutContainer').style.backgroundImage = `url('${bgImg}')`;
+  }
+}
+
+function applyThemeSetting(theme) {
+  if(theme === 'dark') {
+    document.body.classList.add('dark-theme');
+  } else {
+    document.body.classList.remove('dark-theme');
+  }
+}
+
+window.openWaSettingsModal = function() {
+  $('#waSettingsModal').classList.add('open');
+};
+
+window.closeWaSettingsModal = function() {
+  $('#waSettingsModal').classList.remove('open');
+};
+
+window.saveWaSettings = function() {
+  const theme = $('#settingThemeSelect').value;
+  const color = $('#settingOutgoingColor').value;
+  const fileInput = $('#settingBgFileInput');
+
+  localStorage.setItem('rock_wa_theme', theme);
+  localStorage.setItem('rock_wa_outgoing_color', color);
+
+  if(fileInput.files && fileInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      localStorage.setItem('rock_wa_bg_image', e.target.result);
+      loadSavedWaCustomizations();
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    loadSavedWaCustomizations();
+  }
+
+  closeWaSettingsModal();
+  showToast('Paramètres WhatsApp enregistrés !');
+};
+
+/* PRÉVISUALISATION DANS LE CADRAN */
+window.previewSelectedMedia = function(event) {
+  const files = event.target.files;
+  const grid = $('#mediaPreviewGrid');
+  if(!files || files.length === 0) {
+    grid.style.display = 'none';
+    grid.innerHTML = '';
+    return;
+  }
+
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+
+  for(let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const item = document.createElement('div');
+      item.className = 'media-preview-item';
+      if(file.type.startsWith('video')) {
+        item.innerHTML = `<video src="${e.target.result}" muted></video>`;
+      } else {
+        item.innerHTML = `<img src="${e.target.result}" alt="Aperçu">`;
+      }
+      grid.appendChild(item);
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+/* VOLET LATÉRAL */
+const drawer = $('#adminDrawer');
+const overlay = $('#drawerOverlay');
+function openDrawer() { drawer?.classList.add('open'); overlay?.classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeDrawer() { drawer?.classList.remove('open'); overlay?.classList.remove('open'); document.body.style.overflow = ''; }
+
+$('#hamburgerBtn')?.addEventListener('click', openDrawer);
+$('#drawerClose')?.addEventListener('click', closeDrawer);
+overlay?.addEventListener('click', closeDrawer);
+
+$$('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.classList.remove('active'));
+    $$('.admin-pane').forEach(p => p.classList.remove('active'));
+    
+    $('#adminWelcomeScreen').style.display = 'none';
+    $('#adminContentArea').style.display = 'block';
+
+    btn.classList.add('active');
+    const targetPane = $(`#${btn.dataset.tab}`);
+    if(targetPane) targetPane.classList.add('active');
+
+    if(btn.dataset.tab === 'tabChat') {
+      loadSavedWaCustomizations();
+      loadAdminConversations();
+    }
+    if(btn.dataset.tab === 'tabPosts') renderAdminPublicFeed();
+    if(btn.dataset.tab === 'tabWelcomeMessage') loadWelcomeMessageForm();
+    
+    closeDrawer();
+  });
+});
+
+function readJSON(k, def) {
+  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; }
+}
+
+const defaultBurgerOptions = [
+  { text: "Accueil", content: "Bienvenue..." },
+  { text: "Campagnes", content: "Nos projets..." },
+  { text: "Critères", content: "Critères..." },
+  { text: "Confidentialité", content: "Règles..." },
+  { text: "Contact", content: "Contact..." }
+];
+
+function loadDrawerForm() {
+  $('#setDrawerTitle').value = localStorage.getItem('rock_drawer_title') || 'Navigation & Infos';
+  renderBurgerOptionCards(readJSON('rock_burger_options', defaultBurgerOptions));
+}
+
+function renderBurgerOptionCards(options) {
+  const container = $('#burgerOptionsContainer');
+  if(!container) return;
+  let html = '';
+  options.forEach((opt, idx) => {
+    html += `
+      <div style="background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+          <input type="text" class="burger-text-input" value="${escapeHtml(opt.text)}" placeholder="Nom" style="flex:1">
+          <button type="button" class="btn-sm" onclick="saveSingleBurgerOption(${idx})">Enregistrer</button>
+          <button type="button" class="btn-danger" onclick="removeBurgerOptionCard(${idx})">Supprimer</button>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <textarea class="burger-content-textarea" placeholder="Texte...">${escapeHtml(opt.content || '')}</textarea>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+window.saveDrawerTitle = function() {
+  localStorage.setItem('rock_drawer_title', $('#setDrawerTitle').value.trim());
+  showToast('Titre enregistré');
+};
+
+window.saveSingleBurgerOption = function(idx) {
+  const cards = $$('#burgerOptionsContainer > div');
+  const card = cards[idx];
+  if(!card) return;
+  const text = $('.burger-text-input', card).value.trim();
+  const content = $('.burger-content-textarea', card).value.trim();
+  let options = readJSON('rock_burger_options', defaultBurgerOptions);
+  if(options[idx]) { options[idx].text = text; options[idx].content = content; }
+  localStorage.setItem('rock_burger_options', JSON.stringify(options));
+  showToast('Option enregistrée');
+};
+
+window.addBurgerOptionCard = function() {
+  let options = readJSON('rock_burger_options', defaultBurgerOptions);
+  options.push({ text: "Nouvelle option", content: "Texte..." });
+  localStorage.setItem('rock_burger_options', JSON.stringify(options));
+  renderBurgerOptionCards(options);
+};
+
+window.removeBurgerOptionCard = function(idx) {
+  if(!confirm('Supprimer ?')) return;
+  let options = readJSON('rock_burger_options', defaultBurgerOptions);
+  options.splice(idx, 1);
+  localStorage.setItem('rock_burger_options', JSON.stringify(options));
+  renderBurgerOptionCards(options);
+};
+
+/* GESTION DU MESSAGE DE BIENVENUE PROFESSIONNEL */
+function loadWelcomeMessageForm() {
+  $('#setWelcomeTitleText').value = localStorage.getItem('rock_welcome_title') || 'Espace Officiel de The Rock Solidarity Foundation';
+  $('#setWelcomeSubText').value = localStorage.getItem('rock_welcome_sub') || "Plateforme solidaire d'accompagnement et de suivi des projets";
+  $('#setWelcomeFont').value = localStorage.getItem('rock_welcome_font') || 'Georgia, serif';
+  $('#setWelcomeTitleSize').value = localStorage.getItem('rock_welcome_title_size') || 'clamp(22px, 3vw, 32px)';
+  $('#setWelcomeSubSize').value = localStorage.getItem('rock_welcome_sub_size') || 'clamp(14px, 1.8vw, 17px)';
+  $('#setWelcomeTextColor').value = localStorage.getItem('rock_welcome_text_color') || '#082d72';
+  $('#setWelcomeAccentColor').value = localStorage.getItem('rock_welcome_accent_color') || '#075bff';
+}
+
+$('#welcomeMsgForm').addEventListener('submit', e => {
+  e.preventDefault();
+  localStorage.setItem('rock_welcome_title', $('#setWelcomeTitleText').value.trim());
+  localStorage.setItem('rock_welcome_sub', $('#setWelcomeSubText').value.trim());
+  localStorage.setItem('rock_welcome_font', $('#setWelcomeFont').value);
+  localStorage.setItem('rock_welcome_title_size', $('#setWelcomeTitleSize').value.trim());
+  localStorage.setItem('rock_welcome_sub_size', $('#setWelcomeSubSize').value.trim());
+  localStorage.setItem('rock_welcome_text_color', $('#setWelcomeTextColor').value);
+  localStorage.setItem('rock_welcome_accent_color', $('#setWelcomeAccentColor').value);
+  showToast('Message professionnel mis à jour et synchronisé !');
+});
+
+function loadHeaderForm() {
+  $('#setMetaTitle').value = localStorage.getItem('rock_meta_title') || 'The Rock Solidarity Foundation';
+  $('#setBrandName').value = localStorage.getItem('rock_brand_name') || 'The Rock Solidarity Foundation';
+  $('#setBrandTag').value = localStorage.getItem('rock_brand_tag') || 'Initiative indépendante';
+}
+$('#headerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  localStorage.setItem('rock_meta_title', $('#setMetaTitle').value.trim());
+  localStorage.setItem('rock_brand_name', $('#setBrandName').value.trim());
+  localStorage.setItem('rock_brand_tag', $('#setBrandTag').value.trim());
+  showToast('En-tête mis à jour !');
+});
+
+function loadSliderForm() {
+  $('#setHeroKicker').value = localStorage.getItem('rock_hero_kicker') || '✦ LA SOLIDARITÉ QUI FAIT AVANCER';
+  $('#setHeroTitle').value = localStorage.getItem('rock_hero_title') || 'Soutenons ensemble les projets';
+  $('#setHeroDesc').value = localStorage.getItem('rock_hero_desc') || "Nous accompagnons les entrepreneurs.";
+}
+$('#sliderForm').addEventListener('submit', e => {
+  e.preventDefault();
+  localStorage.setItem('rock_hero_kicker', $('#setHeroKicker').value.trim());
+  localStorage.setItem('rock_hero_title', $('#setHeroTitle').value.trim());
+  localStorage.setItem('rock_hero_desc', $('#setHeroDesc').value.trim());
+  showToast('Bannière mise à jour !');
+});
+
+function loadProfileForm() {
+  $('#setChatName').value = localStorage.getItem('rock_admin_chat_name') || 'Fondation (Support)';
+  $('#setChatLabel').value = localStorage.getItem('rock_chat_label') || "Besoin d'aide ? Écrivez-nous";
+}
+$('#profileForm').addEventListener('submit', e => {
+  e.preventDefault();
+  localStorage.setItem('rock_admin_chat_name', $('#setChatName').value.trim());
+  localStorage.setItem('rock_chat_label', $('#setChatLabel').value.trim());
+  showToast('Profil chat mis à jour !');
+});
+
+function loadFooterForm() {
+  $('#setPhone').value = localStorage.getItem('rock_admin_phone') || '+229 01 02 03 04';
+  $('#setEmail').value = localStorage.getItem('rock_admin_email') || 'contact@therocksolidarity.org';
+}
+$('#footerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  localStorage.setItem('rock_admin_phone', $('#setPhone').value.trim());
+  localStorage.setItem('rock_admin_email', $('#setEmail').value.trim());
+  showToast('Contacts mis à jour !');
+});
+
+/* CRÉATION D'UNE PUBLICATION SPÉCIFIQUE (AVEC DESIGN, POLICE ET MÉDIAS GALERIE + AIRTABLE) */
+window.submitSpecificPost = function(event) {
+  event.preventDefault();
+  const text = $('#specPostText').value.trim();
+  const font = $('#specPostFont').value;
+  const textColor = $('#specPostTextColor').value;
+  const bgColor = $('#specPostBgColor').value;
+  const fileInput = $('#specPostMediaInput');
+
+  if(!text) return;
+
+  const files = fileInput.files;
+  let mediaList = [];
+
+  if(files && files.length > 0) {
+    let processedCount = 0;
+    for(let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mediaList.push({
+          url: e.target.result,
+          type: file.type.startsWith('video') ? 'video' : 'image'
+        });
+        processedCount++;
+        if(processedCount === files.length) {
+          saveAndPublishPost(text, font, textColor, bgColor, mediaList);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  } else {
+    saveAndPublishPost(text, font, textColor, bgColor, []);
+  }
+};
+
+function saveAndPublishPost(text, font, textColor, bgColor, mediaList) {
+  let posts = readJSON('rock_custom_posts', []);
+  const newPost = {
+    id: 'post_' + Date.now(),
+    author: 'Le fondateur',
+    text: text,
+    font: font,
+    textColor: textColor,
+    bgColor: bgColor,
+    media: mediaList,
+    createdAt: new Date().toISOString(),
+    hidden: false
+  };
+
+  posts.unshift(newPost);
+  localStorage.setItem('rock_custom_posts', JSON.stringify(posts));
+  
+  // Synchronisation directe vers la table "Posts" d'Airtable
+  syncAdminToAirtable('Posts', {
+    "TITRE": "Publication Admin",
+    "CONTENU": text
+  });
+
+  $('#specPostText').value = '';
+  $('#specPostMediaInput').value = '';
+  $('#mediaPreviewGrid').style.display = 'none';
+  $('#mediaPreviewGrid').innerHTML = '';
+  showToast('Publication créée, enregistrée et synchronisée sur Airtable !');
+}
+
+/* PUBLICATIONS (VUE) */
+let editingPostId = null;
+
+function renderAdminPublicFeed() {
+  const container = $('#adminPublicPostsList');
+  if(!container) return;
+  let posts = readJSON('rock_custom_posts', []);
+  let html = '';
+  posts.forEach(p => {
+    let mediaHtml = '';
+    if(p.media && p.media.length > 0) {
+      mediaHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-top:12px;">';
+      p.media.forEach(m => {
+        if(m.type === 'video') {
+          mediaHtml += `<video src="${m.url}" controls style="width:100%; max-height:250px; border-radius:8px; object-fit:cover;"></video>`;
+        } else {
+          mediaHtml += `<img src="${m.url}" style="width:100%; max-height:250px; border-radius:8px; object-fit:cover;" alt="Média">`;
+        }
+      });
+      mediaHtml += '</div>';
+    }
+
+    html += `
+      <div class="public-post-card" style="background:${p.bgColor || '#fff'}; color:${p.textColor || '#1e293b'}; font-family:${p.font || 'Inter, sans-serif'};">
+        <div class="public-post-header">
+          <div class="public-author-info">
+            <div class="public-avatar">T</div>
+            <div><strong>${escapeHtml(p.author || 'Le fondateur')}</strong></div>
+          </div>
+          <div class="post-menu-wrapper">
+            <button type="button" class="post-menu-btn" onclick="togglePostDropdown('${p.id}', event)">···</button>
+            <div class="post-dropdown" id="dropdown_${p.id}">
+              <button type="button" class="post-dropdown-item" onclick="openEditModal('${p.id}')">Modifier</button>
+              <button type="button" class="post-dropdown-item danger" onclick="deletePublicPost('${p.id}')">Supprimer</button>
+            </div>
+          </div>
+        </div>
+        <p class="public-post-text">${escapeHtml(p.text || '')}</p>
+        ${mediaHtml}
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+window.togglePostDropdown = function(id, event) {
+  event.stopPropagation();
+  $$('.post-dropdown').forEach(d => { if(d.id !== 'dropdown_' + id) d.classList.remove('open'); });
+  $(`#dropdown_${id}`)?.classList.toggle('open');
+};
+
+document.addEventListener('click', () => $$('.post-dropdown').forEach(d => d.classList.remove('open')));
+
+window.deletePublicPost = function(id) {
+  if(!confirm('Supprimer ?')) return;
+  let posts = readJSON('rock_custom_posts', []).filter(x => x.id !== id);
+  localStorage.setItem('rock_custom_posts', JSON.stringify(posts));
+  renderAdminPublicFeed();
+  showToast('Supprimé');
+};
+
+window.openCreatePostModal = function() {
+  editingPostId = null;
+  $('#modalPostTitle').textContent = 'Créer une publication';
+  $('#editPostAuthorInput').value = 'Le fondateur';
+  $('#editPostTextInput').value = '';
+  $('#editPostModal').classList.add('open');
+};
+
+window.openEditModal = function(id) {
+  editingPostId = id;
+  $('#modalPostTitle').textContent = 'Modifier la publication';
+  const posts = readJSON('rock_custom_posts', []);
+  const p = posts.find(x => x.id === id);
+  if(!p) return;
+  $('#editPostAuthorInput').value = p.author || '';
+  $('#editPostTextInput').value = p.text || '';
+  $('#editPostModal').classList.add('open');
+};
+
+window.closeEditModal = () => $('#editPostModal').classList.remove('open');
+
+window.saveEditedPost = function() {
+  const author = $('#editPostAuthorInput').value.trim();
+  const text = $('#editPostTextInput').value.trim();
+  if(!text) return;
+  let posts = readJSON('rock_custom_posts', []);
+  if(editingPostId) {
+    const p = posts.find(x => x.id === editingPostId);
+    if(p) { p.author = author; p.text = text; }
+  } else {
+    posts.unshift({ id: 'p_' + Date.now(), author, text, createdAt: new Date().toISOString() });
+  }
+  localStorage.setItem('rock_custom_posts', JSON.stringify(posts));
+  closeEditModal();
+  renderAdminPublicFeed();
+  showToast('Enregistré');
+};
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* =====================================================================
+   DISCUSSIONS PRIVÉES WHATSAPP
+   ===================================================================== */
+const USERS_CHAT_KEY = 'rock_users_conversations';
+
+function getConversationsData() {
+  return readJSON(USERS_CHAT_KEY, []);
+}
+
+function loadAdminConversations() {
+  const users = getConversationsData();
+  const listContainer = $('#waChatsList');
+  if (!listContainer) return;
+
+  if (users.length === 0) {
+    listContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted); font-size:13.5px;">Aucun visiteur n\'a encore ouvert de discussion.</div>';
+    return;
+  }
+
+  let html = '';
+  users.forEach((u) => {
+    html += `
+      <div class="wa-chat-row" onclick="openAdminChat('${u.id}')" id="chat_row_${u.id}">
+        <div class="wa-row-avatar">${u.avatarText || 'US'}</div>
+        <div class="wa-row-info">
+          <div class="wa-row-top">
+            <span class="wa-row-name">${escapeHtml(u.name || 'Visiteur')}</span>
+            <span class="wa-row-time">${u.lastMessageTime || ''}</span>
+          </div>
+          <div class="wa-row-msg">${escapeHtml(u.lastMessage || '')}</div>
+        </div>
+      </div>
+    `;
+  });
+  listContainer.innerHTML = html;
+}
+
+window.openAdminChat = function(userId) {
+  $$('.wa-chat-row').forEach(el => el.classList.remove('active'));
+  $(`#chat_row_${userId}`)?.classList.add('active');
+
+  const users = getConversationsData();
+  const user = users.find(u => u.id === userId);
+  if(!user) return;
+
+  const pane = $('#waChatPane');
+  let messagesHtml = '';
+  (user.messages || []).forEach(m => {
+    const bubbleClass = m.sender === 'admin' ? 'outgoing' : 'incoming';
+    messagesHtml += `
+      <div class="wa-msg-bubble ${bubbleClass}">
+        <div>${escapeHtml(m.text)}</div>
+        <div class="wa-time-stamp">${m.time}</div>
+      </div>
+    `;
+  });
+
+  pane.innerHTML = `
+    <div class="wa-chat-top-header">
+      ${window.innerWidth <= 768 ? '<button type="button" onclick="backToWaList()" style="background:none;border:0;font-weight:800;color:var(--blue);cursor:pointer;padding:0 8px 0 0;">← Retour</button>' : ''}
+      <div class="wa-pane-avatar">${user.avatarText || 'US'}</div>
+      <div class="wa-pane-titles">
+        <div class="wa-pane-name">${escapeHtml(user.name)}</div>
+        <div class="wa-pane-sub">Discussion en direct</div>
+      </div>
+    </div>
+    <div class="wa-messages-scroll" id="waMessagesScroll">
+      ${messagesHtml}
+    </div>
+    <form class="wa-bottom-composer" onsubmit="sendAdminMessage(event, '${user.id}')">
+      <input type="text" id="adminMsgInput" placeholder="Écrire un message..." autocomplete="off" required>
+      <button type="submit" class="wa-send-action-btn"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </form>
+  `;
+
+  pane.classList.add('active');
+  if(window.innerWidth <= 768) {
+    $('#waSidebarPane').classList.add('chat-opened');
+  }
+
+  const scrollContainer = $('#waMessagesScroll');
+  if(scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+};
+
+window.backToWaList = function() {
+  $('#waSidebarPane').classList.remove('chat-opened');
+  $('#waChatPane').classList.remove('active');
+};
+
+window.sendAdminMessage = function(event, userId) {
+  event.preventDefault();
+  const input = $('#adminMsgInput');
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+
+  let users = getConversationsData();
+  const user = users.find(u => u.id === userId);
+  if(!user) return;
+
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  if(!user.messages) user.messages = [];
+  user.messages.push({ sender: 'admin', text: text, time: timeStr });
+  user.lastMessage = 'Admin: ' + text;
+  user.lastMessageTime = timeStr;
+
+  localStorage.setItem(USERS_CHAT_KEY, JSON.stringify(users));
+  input.value = '';
+  openAdminChat(userId);
+  loadAdminConversations();
+  showToast('Réponse envoyée');
+};
+
+window.filterConversations = function() {
+  const q = $('#waSearchInput').value.toLowerCase();
+  $$('.wa-chat-row').forEach(row => {
+    const name = $('.wa-row-name', row).textContent.toLowerCase();
+    const msg = $('.wa-row-msg', row).textContent.toLowerCase();
+    row.style.display = (name.includes(q) || msg.includes(q)) ? 'flex' : 'none';
+  });
+};
+
+function initAdmin() {
+  loadDrawerForm();
+  loadHeaderForm();
+  loadSliderForm();
+  loadProfileForm();
+  loadFooterForm();
+  loadSavedWaCustomizations();
+  loadWelcomeMessageForm();
+}
+</script>
+</body>
+</html>
